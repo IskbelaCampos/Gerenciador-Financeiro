@@ -1,0 +1,919 @@
+openapi: 3.0.3
+info:
+  title: Gerenciador Financeiro API
+  version: 1.0.0
+  description: >
+    Especificacao OpenAPI para a API REST do backend da aplicacao Gerenciador
+    Financeiro. A modelagem foi derivada dos Epics e User Stories do repositorio
+    IskbelaCampos/Gerenciador-Financeiro.
+servers:
+  - url: /api/v1
+    description: Mesmo host da API atual
+  - url: http://localhost:8080/api/v1
+    description: Desenvolvimento local
+  - url: https://api.gerenciador-financeiro.com/v1
+    description: Producao
+tags:
+  - name: Authentication
+    description: Autenticacao e sessao do usuario via JWT.
+  - name: Categories
+    description: Consulta das categorias disponiveis na aplicacao.
+  - name: Transactions
+    description: Cadastro, consulta, edicao e exclusao de lancamentos financeiros.
+  - name: Budgets
+    description: Definicao e acompanhamento de budgets mensais por categoria.
+  - name: Alerts
+    description: Consulta de alertas de consumo de budget.
+  - name: Dashboard
+    description: Visoes consolidadas de gastos e comparacoes entre meses.
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Realiza o cadastro de um novo usuario e retorna tokens JWT.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Usuario cadastrado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokensResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Realiza login e retorna tokens JWT.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login realizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokensResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Gera um novo access token a partir do refresh token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Access token renovado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokensResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Invalida a sessao atual do usuario.
+      responses:
+        '204':
+          description: Logout realizado com sucesso.
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Retorna os dados do usuario autenticado.
+      responses:
+        '200':
+          description: Usuario autenticado retornado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /categories:
+    get:
+      tags: [Categories]
+      summary: Lista as categorias disponiveis na aplicacao.
+      responses:
+        '200':
+          description: Categorias retornadas com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+
+  /transactions:
+    get:
+      tags: [Transactions]
+      summary: Lista os lancamentos financeiros do usuario.
+      parameters:
+        - $ref: '#/components/parameters/StartDateQuery'
+        - $ref: '#/components/parameters/EndDateQuery'
+        - $ref: '#/components/parameters/MonthQuery'
+        - $ref: '#/components/parameters/CategoryQuery'
+        - $ref: '#/components/parameters/TransactionTypeQuery'
+        - $ref: '#/components/parameters/PageQuery'
+        - $ref: '#/components/parameters/PageSizeQuery'
+      responses:
+        '200':
+          description: Lancamentos retornados com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTransactionsResponse'
+    post:
+      tags: [Transactions]
+      summary: Cria um novo lancamento financeiro.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransactionRequest'
+      responses:
+        '201':
+          description: Lancamento criado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+  /transactions/{transactionId}:
+    get:
+      tags: [Transactions]
+      summary: Consulta um lancamento especifico.
+      parameters:
+        - $ref: '#/components/parameters/TransactionIdPath'
+      responses:
+        '200':
+          description: Lancamento retornado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      tags: [Transactions]
+      summary: Atualiza um lancamento existente.
+      parameters:
+        - $ref: '#/components/parameters/TransactionIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTransactionRequest'
+      responses:
+        '200':
+          description: Lancamento atualizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    delete:
+      tags: [Transactions]
+      summary: Exclui um lancamento financeiro.
+      parameters:
+        - $ref: '#/components/parameters/TransactionIdPath'
+      responses:
+        '204':
+          description: Lancamento excluido com sucesso.
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /budgets:
+    get:
+      tags: [Budgets]
+      summary: Lista os budgets mensais configurados por categoria.
+      parameters:
+        - $ref: '#/components/parameters/MonthQuery'
+        - $ref: '#/components/parameters/CategoryQuery'
+      responses:
+        '200':
+          description: Budgets retornados com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Budget'
+    post:
+      tags: [Budgets]
+      summary: Cria ou registra um budget mensal para uma categoria.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBudgetRequest'
+      responses:
+        '201':
+          description: Budget criado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+  /budgets/{budgetId}:
+    get:
+      tags: [Budgets]
+      summary: Consulta um budget especifico.
+      parameters:
+        - $ref: '#/components/parameters/BudgetIdPath'
+      responses:
+        '200':
+          description: Budget retornado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    patch:
+      tags: [Budgets]
+      summary: Ajusta um budget existente e recalcula consumo e alertas.
+      parameters:
+        - $ref: '#/components/parameters/BudgetIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBudgetRequest'
+      responses:
+        '200':
+          description: Budget ajustado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /alerts/budgets:
+    get:
+      tags: [Alerts]
+      summary: Lista alertas de consumo de budget do usuario.
+      parameters:
+        - $ref: '#/components/parameters/MonthQuery'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, ACKNOWLEDGED]
+      responses:
+        '200':
+          description: Alertas retornados com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BudgetAlert'
+  /alerts/budgets/{alertId}/acknowledge:
+    post:
+      tags: [Alerts]
+      summary: Marca um alerta como visualizado pelo usuario.
+      parameters:
+        - $ref: '#/components/parameters/AlertIdPath'
+      responses:
+        '200':
+          description: Alerta atualizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BudgetAlert'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /dashboard/overview:
+    get:
+      tags: [Dashboard]
+      summary: Retorna a visao consolidada do mes atual.
+      parameters:
+        - $ref: '#/components/parameters/MonthQuery'
+      responses:
+        '200':
+          description: Visao consolidada retornada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOverview'
+  /dashboard/categories/summary:
+    get:
+      tags: [Dashboard]
+      summary: Retorna o acumulado por categoria para um mes.
+      parameters:
+        - $ref: '#/components/parameters/MonthQuery'
+      responses:
+        '200':
+          description: Resumo por categoria retornado com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  month:
+                    type: string
+                    example: '2026-04'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CategoryExpenseSummary'
+  /dashboard/comparisons/monthly:
+    get:
+      tags: [Dashboard]
+      summary: Compara o gasto geral do mes atual com o mes anterior.
+      parameters:
+        - $ref: '#/components/parameters/MonthQuery'
+      responses:
+        '200':
+          description: Comparacao geral retornada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyComparison'
+  /dashboard/comparisons/monthly/categories:
+    get:
+      tags: [Dashboard]
+      summary: Compara os gastos por categoria entre o mes atual e o anterior.
+      parameters:
+        - $ref: '#/components/parameters/MonthQuery'
+      responses:
+        '200':
+          description: Comparacao por categoria retornada com sucesso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  month:
+                    type: string
+                    example: '2026-04'
+                  previousMonth:
+                    type: string
+                    example: '2026-03'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CategoryMonthlyComparison'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TransactionIdPath:
+      name: transactionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BudgetIdPath:
+      name: budgetId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AlertIdPath:
+      name: alertId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MonthQuery:
+      name: month
+      in: query
+      description: Mes de referencia no formato YYYY-MM.
+      schema:
+        type: string
+        example: '2026-04'
+    StartDateQuery:
+      name: startDate
+      in: query
+      schema:
+        type: string
+        format: date
+    EndDateQuery:
+      name: endDate
+      in: query
+      schema:
+        type: string
+        format: date
+    CategoryQuery:
+      name: category
+      in: query
+      schema:
+        $ref: '#/components/schemas/CategoryCode'
+    TransactionTypeQuery:
+      name: transactionType
+      in: query
+      schema:
+        $ref: '#/components/schemas/TransactionType'
+    PageQuery:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeQuery:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    BadRequestError:
+      description: Dados de entrada invalidos.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedError:
+      description: Usuario nao autenticado ou token invalido.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Recurso nao encontrado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    AuthTokensResponse:
+      type: object
+      required: [accessToken, refreshToken, tokenType, expiresIn, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          example: 3600
+        user:
+          $ref: '#/components/schemas/UserProfile'
+
+    UserProfile:
+      type: object
+      required: [id, firstName, lastName, name, email]
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+          example: Maria
+        lastName:
+          type: string
+          example: Exemplo
+        name:
+          type: string
+          example: Maria Exemplo
+        email:
+          type: string
+          format: email
+
+    RegisterRequest:
+      type: object
+      required: [firstName, lastName, email, password]
+      properties:
+        firstName:
+          type: string
+          example: Maria
+        lastName:
+          type: string
+          example: Exemplo
+        email:
+          type: string
+          format: email
+          example: maria@exeplo.com
+        password:
+          type: string
+          format: password
+          example: "123456"
+
+    CategoryCode:
+      type: string
+      enum:
+        - mercado
+        - lazer
+        - saude
+        - outros
+        - carro
+        - combustivel
+        - restaurante
+        - contas
+        - shopping
+        - renda
+        - poupanca
+
+    Category:
+      type: object
+      required: [code, label, transactionTypes]
+      properties:
+        code:
+          $ref: '#/components/schemas/CategoryCode'
+        label:
+          type: string
+          example: Mercado
+        transactionTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionType'
+
+    TransactionType:
+      type: string
+      enum: [EXPENSE, INCOME, SAVINGS]
+
+    Money:
+      type: object
+      required: [amount, currencyCode, currencySymbol, formatted]
+      properties:
+        amount:
+          type: string
+          description: Valor decimal monetario com precisao financeira.
+          example: '1875.85'
+        currencyCode:
+          type: string
+          example: EUR
+        currencySymbol:
+          type: string
+          example: €
+        formatted:
+          type: string
+          example: €1.875,85
+
+    CreateTransactionRequest:
+      type: object
+      required:
+        - transactionType
+        - category
+        - amount
+        - currencyCode
+        - currencySymbol
+        - transactionDate
+      properties:
+        transactionType:
+          $ref: '#/components/schemas/TransactionType'
+        category:
+          $ref: '#/components/schemas/CategoryCode'
+        amount:
+          type: string
+          example: '35.90'
+        currencyCode:
+          type: string
+          example: EUR
+        currencySymbol:
+          type: string
+          example: €
+        transactionDate:
+          type: string
+          format: date
+        description:
+          type: string
+          maxLength: 255
+
+    UpdateTransactionRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateTransactionRequest'
+
+    Transaction:
+      type: object
+      required:
+        - id
+        - userId
+        - transactionType
+        - category
+        - money
+        - transactionDate
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        transactionType:
+          $ref: '#/components/schemas/TransactionType'
+        category:
+          $ref: '#/components/schemas/CategoryCode'
+        money:
+          $ref: '#/components/schemas/Money'
+        description:
+          type: string
+        transactionDate:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PaginatedTransactionsResponse:
+      type: object
+      required: [items, page, pageSize, totalItems, totalPages]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        totalItems:
+          type: integer
+        totalPages:
+          type: integer
+
+    CreateBudgetRequest:
+      type: object
+      required: [category, month, amount, currencyCode, currencySymbol]
+      properties:
+        category:
+          $ref: '#/components/schemas/CategoryCode'
+        month:
+          type: string
+          example: '2026-04'
+        amount:
+          type: string
+          example: '500.00'
+        currencyCode:
+          type: string
+          example: EUR
+        currencySymbol:
+          type: string
+          example: €
+
+    UpdateBudgetRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: string
+          example: '650.00'
+
+    BudgetThresholdStatus:
+      type: string
+      enum: [BELOW_50, REACHED_50, REACHED_90, EXCEEDED]
+
+    Budget:
+      type: object
+      required:
+        - id
+        - userId
+        - category
+        - month
+        - planned
+        - consumed
+        - remaining
+        - consumedPercentage
+        - thresholdStatus
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        category:
+          $ref: '#/components/schemas/CategoryCode'
+        month:
+          type: string
+          example: '2026-04'
+        planned:
+          $ref: '#/components/schemas/Money'
+        consumed:
+          $ref: '#/components/schemas/Money'
+        remaining:
+          $ref: '#/components/schemas/Money'
+        consumedPercentage:
+          type: number
+          format: double
+          example: 72.5
+        thresholdStatus:
+          $ref: '#/components/schemas/BudgetThresholdStatus'
+        updatedAt:
+          type: string
+          format: date-time
+
+    BudgetAlert:
+      type: object
+      required:
+        - id
+        - budgetId
+        - category
+        - month
+        - threshold
+        - message
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        budgetId:
+          type: string
+          format: uuid
+        category:
+          $ref: '#/components/schemas/CategoryCode'
+        month:
+          type: string
+          example: '2026-04'
+        threshold:
+          type: integer
+          enum: [50, 90]
+        message:
+          type: string
+          example: Voce atingiu 90% do budget da categoria mercado.
+        status:
+          type: string
+          enum: [ACTIVE, ACKNOWLEDGED]
+        createdAt:
+          type: string
+          format: date-time
+
+    DashboardOverview:
+      type: object
+      required:
+        - month
+        - totalExpenses
+        - totalIncome
+        - totalSavings
+        - categorySummary
+      properties:
+        month:
+          type: string
+          example: '2026-04'
+        totalExpenses:
+          $ref: '#/components/schemas/Money'
+        totalIncome:
+          $ref: '#/components/schemas/Money'
+        totalSavings:
+          $ref: '#/components/schemas/Money'
+        categorySummary:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryExpenseSummary'
+
+    CategoryExpenseSummary:
+      type: object
+      required: [category, total]
+      properties:
+        category:
+          $ref: '#/components/schemas/CategoryCode'
+        total:
+          $ref: '#/components/schemas/Money'
+        budget:
+          $ref: '#/components/schemas/Money'
+        consumedPercentage:
+          type: number
+          format: double
+          nullable: true
+
+    MonthlyComparison:
+      type: object
+      required:
+        - currentMonth
+        - previousMonth
+        - currentTotal
+        - previousTotal
+        - difference
+        - differencePercentage
+      properties:
+        currentMonth:
+          type: string
+          example: '2026-04'
+        previousMonth:
+          type: string
+          example: '2026-03'
+        currentTotal:
+          $ref: '#/components/schemas/Money'
+        previousTotal:
+          $ref: '#/components/schemas/Money'
+        difference:
+          $ref: '#/components/schemas/Money'
+        differencePercentage:
+          type: number
+          format: double
+          example: 12.5
+
+    CategoryMonthlyComparison:
+      type: object
+      required:
+        - category
+        - currentTotal
+        - previousTotal
+        - difference
+        - differencePercentage
+      properties:
+        category:
+          $ref: '#/components/schemas/CategoryCode'
+        currentTotal:
+          $ref: '#/components/schemas/Money'
+        previousTotal:
+          $ref: '#/components/schemas/Money'
+        difference:
+          $ref: '#/components/schemas/Money'
+        differencePercentage:
+          type: number
+          format: double
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: Os dados enviados sao invalidos.
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              issue:
+                type: string

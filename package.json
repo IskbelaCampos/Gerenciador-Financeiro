@@ -1,0 +1,25 @@
+{
+  "name": "gerenciador-financeiro-api",
+  "version": "1.0.0",
+  "description": "API REST em Express para o Gerenciador Financeiro com banco em memoria.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "express",
+    "openapi",
+    "finance",
+    "jwt"
+  ],
+  "author": "OpenAI Codex",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.8.1"
+  }
+}

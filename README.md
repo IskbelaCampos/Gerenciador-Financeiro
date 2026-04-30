@@ -1,15 +1,43 @@
-# Gerenciador Financeiro
+# Gerenciador Financeiro API
 
-Repositório de planejamento do produto **Gerenciador Financeiro**.
+Implementacao em JavaScript com Express e banco em memoria da API definida em [docs/openapi.yaml](./docs/openapi.yaml).
 
-## Estrutura
+## Requisitos
 
-- Wiki: visão do produto, objetivo, categorias, requisitos funcionais, requisitos não funcionais e regras de negócio
-- Issues: Epics e User Stories com vínculo explícito entre elas
-- Projects: poderá receber os itens assim que houver um token compatível com `ProjectV2`
+- Node.js 20+
 
-## Links
+## Executar
 
-- Repositório: https://github.com/IskbelaCampos/Gerenciador-Financeiro
-- Wiki: https://github.com/IskbelaCampos/Gerenciador-Financeiro/wiki
-- Issues: https://github.com/IskbelaCampos/Gerenciador-Financeiro/issues
+```bash
+npm install
+npm start
+```
+
+## Autenticacao inicial
+
+Usuario de teste:
+
+- email: `maria@exeplo.com`
+- senha: `123456`
+
+## Cadastro
+
+Novo cadastro disponivel em:
+
+- `POST /api/v1/auth/register`
+
+Campos obrigatorios:
+
+- `firstName`
+- `lastName`
+- `email`
+- `password`
+
+## Base URL local
+
+`http://localhost:8080/api/v1`
+
+## Swagger
+
+- UI: `http://localhost:8080/api/docs`
+- YAML: `http://localhost:8080/api/docs/openapi.yaml`
