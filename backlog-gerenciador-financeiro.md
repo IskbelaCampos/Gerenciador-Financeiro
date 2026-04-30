@@ -50,71 +50,75 @@ Permitir visualizar os gastos acumulados por categoria e o somatório geral de g
 
 O sistema deve exigir autenticação do usuário por meio de JWT antes do acesso às funcionalidades da aplicação.
 
-### RF02 - Registro de lançamentos financeiros
+### RF02 - Cadastro de usuários
+
+O sistema deve permitir o cadastro de novos usuários informando nome, sobrenome, e-mail e senha.
+
+### RF03 - Registro de lançamentos financeiros
 
 O sistema deve permitir cadastrar lançamentos financeiros informando categoria, símbolo da moeda, valor decimal, data e descrição opcional.
 
-### RF03 - Registro de lançamentos de gastos
+### RF04 - Registro de lançamentos de gastos
 
 A aplicação deve receber lançamentos relacionados a gastos.
 
-### RF04 - Registro de lançamentos de renda
+### RF05 - Registro de lançamentos de renda
 
 O sistema deve permitir registrar valores de renda.
 
-### RF05 - Registro de lançamentos de poupança
+### RF06 - Registro de lançamentos de poupança
 
 O sistema deve permitir registrar valores de poupança.
 
-### RF06 - Uso de categorias predefinidas
+### RF07 - Uso de categorias predefinidas
 
 O sistema deve permitir selecionar somente as categorias disponíveis: mercado, lazer, saúde, outros, carro, combustível, restaurante, contas, shopping, renda e poupança.
 
-### RF07 - Edição de lançamentos
+### RF08 - Edição de lançamentos
 
 O sistema deve permitir editar dados de um lançamento já cadastrado.
 
-### RF08 - Exclusão de lançamentos
+### RF09 - Exclusão de lançamentos
 
 O sistema deve permitir excluir um lançamento cadastrado.
 
-### RF09 - Definição de budget por categoria
+### RF10 - Definição de budget por categoria
 
 O sistema deve permitir definir um budget por categoria para controle mensal.
 
-### RF10 - Atualização de budget
+### RF11 - Atualização de budget
 
 O sistema deve permitir ajustar o budget de qualquer categoria a qualquer momento.
 
-### RF11 - Consulta do budget consumido
+### RF12 - Consulta do budget consumido
 
 O sistema deve exibir o valor do budget definido, o valor já consumido e o percentual utilizado por categoria.
 
-### RF12 - Alerta de 50% do budget
+### RF13 - Alerta de 50% do budget
 
 O sistema deve retornar uma mensagem de alerta quando o consumo da categoria atingir ou ultrapassar 50% do budget definido.
 
-### RF13 - Alerta de 90% do budget
+### RF14 - Alerta de 90% do budget
 
 O sistema deve retornar uma mensagem de alerta quando o consumo da categoria atingir ou ultrapassar 90% do budget definido.
 
-### RF14 - Exibição do gasto acumulado geral
+### RF15 - Exibição do gasto acumulado geral
 
 O sistema deve mostrar o gasto acumulado com a soma de todas as categorias de despesa.
 
-### RF15 - Exibição do gasto acumulado por categoria
+### RF16 - Exibição do gasto acumulado por categoria
 
 O sistema deve mostrar o gasto acumulado de cada categoria de despesa.
 
-### RF16 - Consulta de histórico financeiro
+### RF17 - Consulta de histórico financeiro
 
 O sistema deve permitir visualizar os lançamentos diários e mensais realizados pelo usuário.
 
-### RF17 - Comparação geral entre meses
+### RF18 - Comparação geral entre meses
 
 O sistema deve permitir comparar os gastos do mês atual com os gastos do mês anterior de forma consolidada.
 
-### RF18 - Comparação por categoria entre meses
+### RF19 - Comparação por categoria entre meses
 
 O sistema deve permitir comparar os gastos do mês atual com os gastos do mês anterior por categoria.
 
